@@ -1,0 +1,13 @@
+[Unit]
+Description=Yahboom RGB blue + fan service
+After=multi-user.target
+
+[Service]
+Type=oneshot
+User=__USER__
+ExecStart=/usr/bin/python3 __INSTALL_DIR__/scripts/rgb_blue.py
+WorkingDirectory=__HOME__
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

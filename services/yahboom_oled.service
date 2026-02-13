@@ -1,0 +1,12 @@
+[Unit]
+Description=Yahboom OLED display service
+After=multi-user.target
+
+[Service]
+Type=idle
+User=__USER__
+ExecStart=/usr/bin/python3 __INSTALL_DIR__/scripts/oled.py
+WorkingDirectory=__HOME__
+
+[Install]
+WantedBy=multi-user.target
