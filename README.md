@@ -42,13 +42,21 @@ The installer will:
 
 When the Jetson boots without a known WiFi network, it automatically creates a hotspot so you can configure WiFi from your phone or laptop:
 
-1. Jetson creates hotspot: **JetsonSetup** (password: `jetson1234`)
-2. Connect your phone/laptop to the hotspot
+1. OLED displays setup instructions (hotspot name, password, and IP)
+2. Connect your phone/laptop to **JetsonSetup** (password: `jetson1234`)
 3. Open **10.42.0.1** in your browser
 4. Select a WiFi network, enter the password, and submit
-5. The Jetson connects and the hotspot shuts down
+5. The Jetson connects, the hotspot shuts down, and OLED returns to normal display
 
 If WiFi is already connected on boot, the portal exits immediately with zero overhead.
+
+**OLED in setup mode:**
+```
+** WiFi Setup **
+Join: JetsonSetup
+Pass: jetson1234
+Open:10.42.0.1
+```
 
 To test or reconfigure WiFi:
 ```bash

@@ -87,18 +87,31 @@ If the Jetson can't connect to WiFi on boot (e.g., deployed to a new location), 
 
 1. On boot, `wifi_setup.py` waits 15s for WiFi to connect
 2. **If connected** → exits immediately (zero overhead in normal operation)
-3. **If not connected** → creates hotspot `JetsonSetup` (password `jetson1234`) on `10.42.0.1`
-4. User connects phone/laptop to hotspot, opens `10.42.0.1` in browser
-5. Web page lists available WiFi networks with signal strength
-6. User selects network, enters password, submits
-7. Jetson stops hotspot, connects to selected network, web server shuts down
+3. **If not connected** → scans for available networks while still in station mode (adapter can't scan in AP mode)
+4. Creates hotspot `JetsonSetup` (password `jetson1234`) on `10.42.0.1`
+5. Writes `/tmp/wifi_setup_active` flag file → OLED switches to setup instructions display
+6. User connects phone/laptop to hotspot, opens `10.42.0.1` in browser
+7. Web page lists cached WiFi networks with signal strength, "Show password" toggle
+8. "Rescan" temporarily stops hotspot, scans, restarts hotspot (user briefly disconnects)
+9. User selects network, enters password, submits
+10. Jetson stops hotspot, removes flag file, connects to selected network, web server shuts down
+11. OLED switches back to normal stats display
 
 **Key details:**
 - Hotspot uses NetworkManager: `nmcli device wifi hotspot ifname wlP1p1s0 ssid JetsonSetup password jetson1234`
 - Web server is Python `http.server` (no dependencies beyond stdlib)
-- WiFi scan: `nmcli -t -f SSID,SIGNAL,SECURITY device wifi list`
+- WiFi scan happens **before** hotspot starts (adapter can't scan in AP mode). Results are cached. Rescan toggles AP off/on.
+- Flag file `/tmp/wifi_setup_active` signals OLED to show setup instructions instead of normal stats
 - Service runs as root (needed for nmcli network control), `Type=simple` with 300s timeout
 - Runs `Before=yahboom_oled.service` so OLED shows the correct IP after connection
+
+**OLED in setup mode shows:**
+```
+** WiFi Setup **
+Join: JetsonSetup
+Pass: jetson1234
+Open:10.42.0.1
+```
 
 **To test:** `nmcli connection delete "<your-wifi>"` then reboot. The hotspot should appear.
 
