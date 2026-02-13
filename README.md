@@ -11,6 +11,7 @@ Configures OLED display, RGB lighting (blue cycle), fan control, and strips the 
 | **OLED Display** | Shows CPU usage, CPU temperature, RAM, disk, and local IP |
 | **RGB Lighting** | Blue cycle breathing effect (hardware-driven, no flicker) |
 | **Fan Control** | Auto-on at boot |
+| **WiFi Setup Portal** | Auto-hotspot + web config page if no WiFi on boot |
 | **Headless Mode** | Disables desktop GUI, saves ~145MB RAM |
 | **System Minimizer** | Strips 35+ unnecessary services, removes snapd, sets max performance clocks |
 
@@ -37,6 +38,25 @@ The installer will:
 3. Auto-detect the correct I2C bus
 4. Install and enable systemd services (auto-start on boot)
 
+## WiFi Setup Portal
+
+When the Jetson boots without a known WiFi network, it automatically creates a hotspot so you can configure WiFi from your phone or laptop:
+
+1. Jetson creates hotspot: **JetsonSetup** (password: `jetson1234`)
+2. Connect your phone/laptop to the hotspot
+3. Open **10.42.0.1** in your browser
+4. Select a WiFi network, enter the password, and submit
+5. The Jetson connects and the hotspot shuts down
+
+If WiFi is already connected on boot, the portal exits immediately with zero overhead.
+
+To test or reconfigure WiFi:
+```bash
+# Forget current WiFi and reboot to trigger the portal
+nmcli connection delete "YourWiFiName"
+sudo reboot
+```
+
 ## Minimal Headless Setup (Recommended)
 
 For dedicated real-time workloads, run the minimizer to strip the system down:
@@ -61,6 +81,9 @@ sudo reboot
 ## Service Commands
 
 ```bash
+# WiFi setup portal
+sudo systemctl start/stop/restart/status yahboom_wifi_setup
+
 # OLED display
 sudo systemctl start/stop/restart/status yahboom_oled
 
@@ -116,9 +139,11 @@ chmod +x uninstall.sh
 ├── scripts/
 │   ├── oled.py             # OLED display (CPU, temp, RAM, disk, IP)
 │   ├── rgb_blue.py         # RGB blue cycle + fan on
+│   ├── wifi_setup.py       # WiFi setup portal (hotspot + web config)
 │   ├── kill_oled.sh        # Stop OLED and clear display
 │   └── minimize.sh         # Strip system to bare minimum for real-time workloads
 └── services/
+    ├── yahboom_wifi_setup.service
     ├── yahboom_oled.service
     └── yahboom_rgb.service
 ```

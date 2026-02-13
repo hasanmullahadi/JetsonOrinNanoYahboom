@@ -1,0 +1,14 @@
+[Unit]
+Description=WiFi setup portal (hotspot if no network)
+Before=yahboom_oled.service
+After=NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/python3 __INSTALL_DIR__/scripts/wifi_setup.py
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

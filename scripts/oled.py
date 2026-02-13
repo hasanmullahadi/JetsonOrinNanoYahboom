@@ -160,6 +160,14 @@ class Yahboom_OLED:
             ip = 'x.x.x.x'
         return ip
 
+    def getWifiSetupMode(self):
+        """Check if WiFi setup portal is active. Returns IP string or None."""
+        try:
+            with open("/tmp/wifi_setup_active", "r") as f:
+                return f.read().strip()
+        except:
+            return None
+
     def main_program(self):
         state = False
         try:
@@ -170,6 +178,17 @@ class Yahboom_OLED:
                 if self.__clear:
                     self.refresh()
                     return True
+
+                setup_ip = self.getWifiSetupMode()
+                if setup_ip:
+                    self.add_line("** WiFi Setup **", 1)
+                    self.add_line("Join: JetsonSetup", 2)
+                    self.add_line("Pass: jetson1234", 3)
+                    self.add_line("Open:" + setup_ip, 4)
+                    self.refresh()
+                    time.sleep(1)
+                    continue
+
                 str_CPU = self.getCPULoadRate(cpu_index)
                 str_Temp = self.getCPUTemp()
                 if cpu_index == 0:

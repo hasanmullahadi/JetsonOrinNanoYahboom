@@ -81,7 +81,7 @@ sed -i "s/i2c_bus=[0-9]*/i2c_bus=$I2C_BUS/g" "$INSTALL_DIR/scripts/rgb_blue.py"
 # --- 5. Install systemd services ---
 echo "[5/5] Installing systemd services..."
 
-for svc in yahboom_oled yahboom_rgb; do
+for svc in yahboom_wifi_setup yahboom_oled yahboom_rgb; do
     sed -e "s|__USER__|$USER|g" \
         -e "s|__HOME__|$HOME_DIR|g" \
         -e "s|__INSTALL_DIR__|$INSTALL_DIR|g" \
@@ -89,8 +89,8 @@ for svc in yahboom_oled yahboom_rgb; do
 done
 
 sudo systemctl daemon-reload
-sudo systemctl enable yahboom_oled.service yahboom_rgb.service
-sudo systemctl restart yahboom_oled.service yahboom_rgb.service
+sudo systemctl enable yahboom_wifi_setup.service yahboom_oled.service yahboom_rgb.service
+sudo systemctl restart yahboom_wifi_setup.service yahboom_oled.service yahboom_rgb.service
 
 echo ""
 echo "============================================"
@@ -101,8 +101,10 @@ echo " OLED:  showing CPU%, temp, RAM, disk, IP"
 echo " RGB:   blue cycle breathing"
 echo " Fan:   ON"
 echo " I2C:   bus $I2C_BUS"
+echo " WiFi:  setup portal (hotspot if no network)"
 echo ""
 echo " Services (auto-start on boot):"
+echo "   sudo systemctl status yahboom_wifi_setup"
 echo "   sudo systemctl status yahboom_oled"
 echo "   sudo systemctl status yahboom_rgb"
 echo ""

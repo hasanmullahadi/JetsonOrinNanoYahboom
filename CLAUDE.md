@@ -35,11 +35,13 @@ After switching to headless, the Jetson is accessible only via SSH. The OLED dis
 scripts/
   oled.py          — OLED display: CPU%, CPU temp, RAM, disk, IP (line 1-4)
   rgb_blue.py      — Sets RGB to blue cycle breathing + fan on
+  wifi_setup.py    — WiFi setup portal: hotspot + web config if no network
   kill_oled.sh     — Stops OLED service and clears the display
   minimize.sh      — Strips system to bare minimum for real-time workloads
 services/
-  yahboom_oled.service  — systemd unit for OLED (auto-start on boot)
-  yahboom_rgb.service   — systemd unit for RGB + fan (auto-start on boot)
+  yahboom_oled.service       — systemd unit for OLED (auto-start on boot)
+  yahboom_rgb.service        — systemd unit for RGB + fan (auto-start on boot)
+  yahboom_wifi_setup.service — systemd unit for WiFi setup portal
 install.sh         — Full setup: dependencies, driver, I2C detection, services
 uninstall.sh       — Remove services, turn off RGB, clear OLED
 ```
@@ -78,6 +80,27 @@ del bot
 **Change RGB color/effect:** Edit `scripts/rgb_blue.py` and restart: `sudo systemctl restart yahboom_rgb`
 
 **Troubleshoot I2C:** Run `sudo i2cdetect -y 7` (or bus 1). The CubeNano controller should appear at `0x0e`. The OLED at `0x3c`. If missing, check the ribbon cable from the CUBE case to the carrier board.
+
+## WiFi Setup Portal
+
+If the Jetson can't connect to WiFi on boot (e.g., deployed to a new location), it automatically creates a hotspot for configuration:
+
+1. On boot, `wifi_setup.py` waits 15s for WiFi to connect
+2. **If connected** → exits immediately (zero overhead in normal operation)
+3. **If not connected** → creates hotspot `JetsonSetup` (password `jetson1234`) on `10.42.0.1`
+4. User connects phone/laptop to hotspot, opens `10.42.0.1` in browser
+5. Web page lists available WiFi networks with signal strength
+6. User selects network, enters password, submits
+7. Jetson stops hotspot, connects to selected network, web server shuts down
+
+**Key details:**
+- Hotspot uses NetworkManager: `nmcli device wifi hotspot ifname wlP1p1s0 ssid JetsonSetup password jetson1234`
+- Web server is Python `http.server` (no dependencies beyond stdlib)
+- WiFi scan: `nmcli -t -f SSID,SIGNAL,SECURITY device wifi list`
+- Service runs as root (needed for nmcli network control), `Type=simple` with 300s timeout
+- Runs `Before=yahboom_oled.service` so OLED shows the correct IP after connection
+
+**To test:** `nmcli connection delete "<your-wifi>"` then reboot. The hotspot should appear.
 
 ## Minimal System for Real-Time Workloads
 
