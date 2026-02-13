@@ -103,6 +103,7 @@ chmod +x uninstall.sh
 
 ```
 .
+├── CLAUDE.md               # Claude Code AI assistant instructions & technical reference
 ├── install.sh              # One-command setup script
 ├── uninstall.sh            # Remove services, turn off RGB/OLED
 ├── scripts/
@@ -113,6 +114,10 @@ chmod +x uninstall.sh
     ├── yahboom_oled.service
     └── yahboom_rgb.service
 ```
+
+## Claude Code
+
+This repo includes a [`CLAUDE.md`](CLAUDE.md) file with detailed technical context for [Claude Code](https://claude.com/claude-code). It covers hardware details, I2C bus configuration, CubeNanoLib API, headless setup, and troubleshooting — so Claude can help modify or debug this project with full context.
 
 ## Resources
 
