@@ -2,7 +2,7 @@
 
 Automated setup for the **Yahboom Jetson MINI CUBE NANO Case** on Jetson Orin Nano (SUB/Official).
 
-Configures OLED display, RGB lighting (blue cycle), fan control, and headless mode.
+Configures OLED display, RGB lighting (blue cycle), fan control, and strips the system to a **minimal headless setup optimized for real-time workloads** (e.g., voice-to-text transcription).
 
 ## What's Included
 
@@ -11,7 +11,8 @@ Configures OLED display, RGB lighting (blue cycle), fan control, and headless mo
 | **OLED Display** | Shows CPU usage, CPU temperature, RAM, disk, and local IP |
 | **RGB Lighting** | Blue cycle breathing effect (hardware-driven, no flicker) |
 | **Fan Control** | Auto-on at boot |
-| **Headless Mode** | Instructions to disable desktop GUI and save ~145MB RAM |
+| **Headless Mode** | Disables desktop GUI, saves ~145MB RAM |
+| **System Minimizer** | Strips 35+ unnecessary services, removes snapd, sets max performance clocks |
 
 ## Compatible Hardware
 
@@ -36,16 +37,22 @@ The installer will:
 3. Auto-detect the correct I2C bus
 4. Install and enable systemd services (auto-start on boot)
 
-## Headless Mode (Recommended)
+## Minimal Headless Setup (Recommended)
 
-Disable the desktop GUI to free up RAM:
+For dedicated real-time workloads, run the minimizer to strip the system down:
 
 ```bash
-sudo systemctl set-default multi-user.target
+chmod +x scripts/minimize.sh
+sudo ./scripts/minimize.sh
 sudo reboot
 ```
 
-To restore the GUI:
+This disables 35+ unnecessary services (Bluetooth, printing, snap, modem, firmware updates, desktop compositors), removes all snap packages (Chromium, CUPS, GNOME), and locks CPU/GPU/EMC to max clocks via `jetson_clocks`.
+
+**Before:** ~670 MB RAM used (with desktop)
+**After:** ~430 MB RAM used — **~6.8 GB free** for your workload
+
+To restore the GUI later:
 ```bash
 sudo systemctl set-default graphical.target
 sudo reboot
@@ -109,7 +116,8 @@ chmod +x uninstall.sh
 ├── scripts/
 │   ├── oled.py             # OLED display (CPU, temp, RAM, disk, IP)
 │   ├── rgb_blue.py         # RGB blue cycle + fan on
-│   └── kill_oled.sh        # Stop OLED and clear display
+│   ├── kill_oled.sh        # Stop OLED and clear display
+│   └── minimize.sh         # Strip system to bare minimum for real-time workloads
 └── services/
     ├── yahboom_oled.service
     └── yahboom_rgb.service

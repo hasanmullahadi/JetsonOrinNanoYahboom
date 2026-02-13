@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-This repo configures the **Yahboom Jetson MINI CUBE NANO Case** (OLED, RGB, fan) on Jetson Orin Nano and sets up headless operation. All scripts are meant to run directly on the Jetson over SSH.
+This repo configures the **Yahboom Jetson MINI CUBE NANO Case** (OLED, RGB, fan) on Jetson Orin Nano and sets up a **minimal headless system optimized for real-time voice-to-text transcription**. All scripts are meant to run directly on the Jetson over SSH.
 
 ## Hardware
 
@@ -36,6 +36,7 @@ scripts/
   oled.py          — OLED display: CPU%, CPU temp, RAM, disk, IP (line 1-4)
   rgb_blue.py      — Sets RGB to blue cycle breathing + fan on
   kill_oled.sh     — Stops OLED service and clears the display
+  minimize.sh      — Strips system to bare minimum for real-time workloads
 services/
   yahboom_oled.service  — systemd unit for OLED (auto-start on boot)
   yahboom_rgb.service   — systemd unit for RGB + fan (auto-start on boot)
@@ -77,3 +78,24 @@ del bot
 **Change RGB color/effect:** Edit `scripts/rgb_blue.py` and restart: `sudo systemctl restart yahboom_rgb`
 
 **Troubleshoot I2C:** Run `sudo i2cdetect -y 7` (or bus 1). The CubeNano controller should appear at `0x0e`. The OLED at `0x3c`. If missing, check the ribbon cable from the CUBE case to the carrier board.
+
+## Minimal System for Real-Time Workloads
+
+Run `scripts/minimize.sh` to strip the system down for dedicated real-time tasks (e.g., voice-to-text transcription). This:
+
+- Switches to headless (`multi-user.target`)
+- Disables 35+ unnecessary services (Bluetooth, printing, snap, modem, firmware updates, desktop compositors, etc.)
+- Removes snapd and all snap packages (Chromium, CUPS, GNOME, etc.)
+- Masks fwupd and packagekit to prevent them from restarting
+- Enables `jetson_clocks` at boot for max CPU/GPU/EMC clock speeds
+
+**What remains running after minimize:**
+- SSH, WiFi (NetworkManager + wpa_supplicant)
+- NVIDIA runtime (nvpmodel, nvpower, nvcpupowerfix, nvphs, nvzramconfig)
+- PulseAudio (needed for audio input)
+- OLED + RGB services
+- systemd essentials (journald, resolved, timesyncd, cron)
+
+**Memory footprint:** ~430 MB used (down from ~670 MB with desktop), leaving ~6.8 GB available for inference workloads.
+
+**Performance mode:** 15W with `jetson_clocks` locks all CPU/GPU/EMC to max frequencies — no dynamic scaling overhead during inference.
